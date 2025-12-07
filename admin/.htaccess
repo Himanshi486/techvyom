@@ -1,0 +1,13 @@
+# Admin folder - only allow PHP files to be executed
+# Prevent direct access to sensitive files
+
+# Allow PHP files
+<FilesMatch "\.php$">
+    Order Allow,Deny
+    Allow from all
+    Require all granted
+</FilesMatch>
+
+# Prevent directory listing
+Options -Indexes
+

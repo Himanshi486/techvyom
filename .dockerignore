@@ -1,0 +1,18 @@
+# Exclude sensitive files from Docker build
+connect.php
+credentials/alumni-service.json
+vendor/
+
+# Exclude unnecessary files
+.git/
+.gitignore
+*.md
+.DS_Store
+node_modules/
+
+# Exclude development files
+*.log
+tmp/
+temp/
+cache/
+

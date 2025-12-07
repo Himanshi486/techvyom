@@ -1,0 +1,209 @@
+/* Map Sidebar Additional Styles */
+.map-sidebar-selected {
+    padding: 0;
+}
+
+.map-sidebar-stats {
+    text-align: center;
+    padding: 16px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.map-sidebar-stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: #7c3aed;
+    margin-bottom: 4px;
+}
+
+.map-sidebar-stat-label {
+    font-size: 14px;
+    color: #7c3aed;
+}
+
+.map-sidebar-alumni-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.map-sidebar-alumni-item {
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.map-sidebar-alumni-item:hover {
+    background-color: #f9fafb;
+}
+
+.map-sidebar-alumni-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.map-sidebar-alumni-name {
+    color: #7c3aed;
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0;
+}
+
+.map-sidebar-alumni-year {
+    font-size: 12px;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.map-sidebar-alumni-year::before {
+    content: '🎓';
+    font-size: 10px;
+}
+
+.map-sidebar-alumni-info {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.map-sidebar-alumni-company {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.map-sidebar-alumni-company i {
+    font-size: 12px;
+}
+
+.map-sidebar-alumni-role {
+    color: #7c3aed;
+    font-weight: 500;
+}
+
+/* Additional responsive adjustments for map */
+@media (max-width: 768px) {
+    .map-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .map-sidebar {
+        position: static;
+        margin-top: 24px;
+    }
+    
+    .map-location-buttons {
+        justify-content: center;
+    }
+    
+    .location-button {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Animation for smooth transitions */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom scrollbar for alumni grid */
+.alumni-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.alumni-grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.alumni-grid::-webkit-scrollbar-thumb {
+    background: #9333ea;
+    border-radius: 4px;
+}
+
+.alumni-grid::-webkit-scrollbar-thumb:hover {
+    background: #7c3aed;
+}
+
+/* Enhanced hover effects */
+.alumni-card {
+    transition: all 0.3s ease;
+}
+
+.alumni-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.program-stat-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Focus states for accessibility */
+.nav-item:focus,
+.mobile-nav-item:focus,
+.hero-btn:focus,
+.search-input:focus,
+.filter-select:focus,
+.location-button:focus,
+.testimonial-nav:focus,
+.testimonial-thumbnail:focus {
+    outline: 2px solid #9333ea;
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .nav-container,
+    .hero-scroll-indicator,
+    .testimonial-nav,
+    .mobile-menu-btn,
+    .loading-overlay {
+        display: none !important;
+    }
+    
+    .hero-section {
+        min-height: auto;
+        padding: 40px 0;
+    }
+    
+    .section-title {
+        color: #000 !important;
+    }
+    
+    .testimonials-section {
+        background: #fff !important;
+        color: #000 !important;
+    }
+    
+    .footer {
+        background: #fff !important;
+        color: #000 !important;
+    }
+}

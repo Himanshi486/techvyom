@@ -1,0 +1,53 @@
+# Sensitive credentials and configuration
+credentials/alumni-service.json
+credentials.json
+connect.php
+
+# Composer dependencies (should be installed via composer install)
+vendor/
+
+# Composer lock file (optional - uncomment if you want to ignore it)
+# composer.lock
+
+# Environment and configuration files
+.env
+.env.local
+*.env
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+logs/
+tmp/
+temp/
+
+# Cache files
+cache/
+*.cache
+
+# Database dumps (optional - uncomment if you want to ignore)
+# *.sql
+# *.sqlite
+# *.db
+
+# Upload directories (if you store user uploads locally)
+uploads/
+files/
+
+# Deployment files
+infinityfree_deploy/
+*.zip
+prepare_infinityfree.php
+INFINITYFREE_DEPLOYMENT.md
+
+# PHP specific
+.phpunit.result.cache
+

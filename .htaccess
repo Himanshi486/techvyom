@@ -1,0 +1,15 @@
+RewriteEngine On
+
+RewriteCond %{REQUEST_URI} ^/techvyom-2/assets/
+RewriteRule ^assets/(.*)$ /Applications/XAMPP/xamppfiles/htdocs/techvyom-2/build/assets/$1 [L]
+
+RewriteCond %{REQUEST_URI} ^/techvyom-2/backend/
+RewriteRule ^ - [L]
+
+DirectoryIndex index.html
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/techvyom-2/assets/
+RewriteCond %{REQUEST_URI} !^/techvyom-2/backend/
+RewriteRule ^ /techvyom-2/index.html [L]
