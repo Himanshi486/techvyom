@@ -1,4 +1,9 @@
 <?php
+echo "TESTING NEW DEPLOYMENT";
+exit;
+?>
+
+<?php
 session_start();
 include 'connect.php';
 
