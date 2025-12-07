@@ -1,11 +1,8 @@
-<?php
-echo "TESTING NEW DEPLOYMENT";
-exit;
-?>
 
 <?php
 session_start();
-include 'connect.php';
+include __DIR__ . '/connect.php';
+
 
 if (!function_exists('formatStringLabel')) {
     function formatStringLabel($value) {
