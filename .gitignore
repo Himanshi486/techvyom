@@ -1,7 +1,7 @@
 # Sensitive credentials and configuration
 credentials/alumni-service.json
 credentials.json
-connect.php
+
 
 # Composer dependencies (should be installed via composer install)
 
