@@ -4,7 +4,7 @@ credentials.json
 connect.php
 
 # Composer dependencies (should be installed via composer install)
-vendor/
+
 
 # Composer lock file (optional - uncomment if you want to ignore it)
 # composer.lock
