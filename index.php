@@ -2,10 +2,6 @@
 
 <?php
 session_start();
-echo "<pre>";
-print_r(__DIR__);
-print_r(scandir(__DIR__));
-exit;
 
 include __DIR__ . '/connect.php';
 
