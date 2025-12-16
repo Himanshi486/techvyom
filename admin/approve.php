@@ -1,4 +1,6 @@
 <?php
+var_dump(getenv('GOOGLE_CREDENTIALS') !== false);
+exit;
 session_start();
 require_once __DIR__ . '/../connect.php';
 
