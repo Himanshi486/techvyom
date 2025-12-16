@@ -1,4 +1,6 @@
 <?php
+echo "DB_HOST = " . getenv("DB_HOST");
+exit;
 session_start();
 
 include __DIR__ . '/connect.php';
