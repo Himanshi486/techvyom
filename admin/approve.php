@@ -1,6 +1,4 @@
 <?php
-var_dump(getenv('GOOGLE_CREDENTIALS') !== false);
-exit;
 session_start();
 require_once __DIR__ . '/../connect.php';
 
@@ -994,10 +992,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['row_index']) && isset
         $check->store_result();
 
         if ($check->num_rows > 0) {
-            $check->close();
-            throw new Exception("An alumni with email '{$email}' already exists in the database.");
-        }
-        $check->close();
+    // Alumni already exists → APPROVE IT
+    $check->bind_result($existing_id);
+    $check->fetch();
+    $check->close();
+
+    $update = $conn->prepare(
+        "UPDATE alumni_basic SET verified = 1 WHERE id = ?"
+    );
+    $update->bind_param("i", $existing_id);
+    $update->execute();
+
+    $conn->commit();
+
+    // Clear cached data so dashboard refreshes
+    unset($_SESSION['sheets_rows']);
+    unset($_SESSION['sheets_headers']);
+
+    header("Location: ../dashboard.php?approved=" . time());
+    exit;
+}
+$check->close();
+
 
         // Begin transaction
         $conn->begin_transaction();
