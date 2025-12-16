@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('connect.php');
+require_once __DIR__ . '/connect.php';
 
 $message = '';
 
@@ -8,26 +8,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = trim($_POST['username']);
     $pass = trim($_POST['password']);
 
-    if ($user == '' || $pass == '') {
+    if ($user === '' || $pass === '') {
         $message = "Please enter username and password.";
     } else {
-        $sql = "SELECT * FROM admin_users WHERE username='$user' AND password='$pass' LIMIT 1";
-        $result = $conn->query($sql);
 
-        if (!$result) {
-            die("❌ Query error: " . $conn->error);
+        // Fetch admin by username
+        $stmt = $conn->prepare(
+            "SELECT admin_id, username, password 
+             FROM admin_users 
+             WHERE username = ? 
+             LIMIT 1"
+        );
+
+        $stmt->bind_param("s", $user);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result && $result->num_rows === 1) {
+            $admin = $result->fetch_assoc();
+
+            // Verify hashed password
+            if (password_verify($pass, $admin['password'])) {
+                $_SESSION['admin_id'] = $admin['admin_id'];
+                $_SESSION['admin_username'] = $admin['username'];
+                header("Location: dashboard.php");
+                exit();
+            }
         }
 
-        if ($result->num_rows > 0) {
-            $_SESSION['admin_id'] = $user;
-            header("Location: dashboard.php");
-            exit();
-        } else {
-            $message = "❌ Invalid username or password.";
-        }
+        $message = "❌ Invalid username or password.";
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -280,3 +293,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </body>
 </html>
+
