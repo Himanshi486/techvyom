@@ -1276,7 +1276,7 @@ $check->close();
                     
                     // Add status header
                     $headerRange = "'Form responses 1'!" . $columnLetter . "1";
-                    $updateValues = [['Status']];
+                    $updateValues = [['Admin Status']];
                     $body = new Google_Service_Sheets_ValueRange(['values' => $updateValues]);
                     $params = ['valueInputOption' => 'RAW'];
                     $service->spreadsheets_values->update($spreadsheetId, $headerRange, $body, $params);
