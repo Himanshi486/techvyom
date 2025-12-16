@@ -1,5 +1,8 @@
 <?php
 session_start();
+var_dump(__DIR__);
+var_dump(file_exists(__DIR__ . '/connect.php'));
+exit;
 include __DIR__ . '/connect.php';
 if (!function_exists('formatStringLabel')) {
     function formatStringLabel($value) {
