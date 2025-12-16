@@ -79,7 +79,7 @@ try {
     // Update status to empty (null) so it shows in pending
     $columnLetter = columnIndexToLetter($statusColIndex);
     $updateRange = "'$sheetName'!" . $columnLetter . $rowNumber;
-    $updateValues = [['']]; // Empty string to clear status
+    $updateValues = [['pending']]; // Empty string to clear status
     $body = new Google_Service_Sheets_ValueRange(['values' => $updateValues]);
     $params = ['valueInputOption' => 'RAW'];
     $service->spreadsheets_values->update($spreadsheetId, $updateRange, $body, $params);
