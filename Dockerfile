@@ -1,19 +1,14 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
-# Install PHP extensions
+# Install required PHP extensions
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-# Enable Apache rewrite
-RUN a2enmod rewrite
+# Set working directory
+WORKDIR /app
 
-# Change Apache to listen on Railway $PORT
-RUN sed -i 's/80/${PORT}/g' /etc/apache2/ports.conf \
- && sed -i 's/:80/:${PORT}/g' /etc/apache2/sites-enabled/000-default.conf
+# Copy project files
+COPY . /app
 
-WORKDIR /var/www/html
-COPY . /var/www/html
+# Railway provides PORT automatically
+CMD ["sh", "-c", "php -S 0.0.0.0:$PORT -t /app"]
 
-# Railway sets PORT automatically
-EXPOSE ${PORT}
-
-CMD ["apache2-foreground"]
