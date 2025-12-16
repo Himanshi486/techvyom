@@ -1160,10 +1160,12 @@ $check->close();
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
             ");
             // 11 parameters: timestamp(s), email(s), name(s), enroll(s), course(s), dept(s), year_in(i), year_out(i), phone(s), linkedin(s), college_doc(s)
-            $basic_stmt->bind_param("ssssssiiss",
-                $timestamp, $email, $name, $enroll, $course, $dept,
-                $year_in_val, $year_out_val, $phone, $linkedin, $college_doc
-            );
+            $basic_stmt->bind_param(
+    "ssssssiisss",
+    $timestamp, $email, $name, $enroll, $course, $dept,
+    $year_in_val, $year_out_val, $phone, $linkedin, $college_doc
+);
+
             
             if (!$basic_stmt->execute()) {
                 throw new Exception("Error inserting into alumni_basic: " . $basic_stmt->error);
