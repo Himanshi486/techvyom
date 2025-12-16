@@ -1,8 +1,6 @@
 <?php
 session_start();
-var_dump(__DIR__);
-var_dump(file_exists(__DIR__ . '/connect.php'));
-exit;
+require_once __DIR__ . '/connect.php';
 if (!function_exists('formatStringLabel')) {
     function formatStringLabel($value) {
         $value = trim((string)$value);
