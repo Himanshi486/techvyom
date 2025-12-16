@@ -1267,7 +1267,7 @@ $check->close();
                 $currentHeaders = array_map('trim', $headerResponse->getValues()[0]);
                 
                 // Find status column index using helper function
-                $statusColIndex = getColumnIndex($currentHeaders, ['Status', 'status']);
+                $statusColIndex = getColumnIndex($currentHeaders, ['Admin Status', 'Admin status']);
                 
                 // If no status column exists, create it (add as last column)
                 if ($statusColIndex === false) {
