@@ -11,8 +11,8 @@ if ($id === 0) {
     exit();
 }
 
-// Fetch alumni basic data
-$stmt = $conn->prepare("SELECT * FROM alumni_basic WHERE id = ?");
+// Fetch alumni basic data - only verified alumni
+$stmt = $conn->prepare("SELECT * FROM alumni_basic WHERE id = ? AND verified = 1");
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $result = $stmt->get_result();

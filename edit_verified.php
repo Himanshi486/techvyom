@@ -17,8 +17,8 @@ function fetchAlumniData(mysqli $conn, int $id): array {
         'extras' => null
     ];
 
-    // Fetch basic data
-    $stmt = $conn->prepare("SELECT * FROM alumni_basic WHERE id = ?");
+    // Fetch basic data - only verified alumni
+    $stmt = $conn->prepare("SELECT * FROM alumni_basic WHERE id = ? AND verified = 1");
     $stmt->bind_param('i', $id);
     $stmt->execute();
     $result = $stmt->get_result();

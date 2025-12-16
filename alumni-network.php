@@ -2,8 +2,7 @@
 session_start();
 include 'connect.php';
 
-// Load helper functions for better column mapping and formatting
-require_once __DIR__ . '/admin/sheets_helper.php';
+// Load helper functions for formatting
 require_once __DIR__ . '/format_helpers.php';
 
 // Helper function to extract location components (city, state)
@@ -60,232 +59,159 @@ function extractLocationComponents($locationString) {
     return ['city' => $city, 'state' => $state];
 }
 
-// Load all alumni data from Google Sheets
+// Load alumni data from database - only verified alumni
 $alumniData = [];
+try {
+    $sql = "SELECT
+        ab.id,
+        ab.full_name as name,
+        ab.year_admission as admission_year,
+        ab.year_passing as year,
+        ab.course as program,
+        ab.department,
+        ab.linkedin_profile as linkedin,
+        ae.employment_status,
+        ae.organisation as company,
+        ae.designation as role,
+        ae.location,
+        ae.experience_years,
+        ae.placed_through_spm,
+        ed.degree_name,
+        ed.institution_name,
+        ed.university_name,
+        ed.has_higher_edu,
+        ab.year_admission
+    FROM alumni_basic ab
+    LEFT JOIN alumni_employment ae ON ab.id = ae.alumni_id
+    LEFT JOIN alumni_education ed ON ab.id = ed.alumni_id
+    WHERE ab.verified = 1
+    ORDER BY ab.year_passing DESC";
 
-$vendorAutoload = __DIR__ . '/vendor/autoload.php';
-if (file_exists($vendorAutoload)) {
-    require_once $vendorAutoload;
-    
-    $credentialsPath = __DIR__ . '/credentials/alumni-service.json';
-    $spreadsheetId = '1y2BTTfKBrokY4syfNL9qHbX0gTIsnopAznnanpRlPr4';
-    $sheetName = 'Form responses 1';
-    
-    try {
-        if (file_exists($credentialsPath)) {
-            $client = new Google_Client();
-            $client->setApplicationName('TechVyom Alumni Management');
-            $client->setScopes(Google_Service_Sheets::SPREADSHEETS);
-            $client->setAuthConfig($credentialsPath);
-            $client->setAccessType('offline');
-            
-            $service = new Google_Service_Sheets($client);
-            
-            // Read ALL data from Google Sheets
-            $range = "'Form responses 1'!A1:AZ100000";
-            try {
-                $response = $service->spreadsheets_values->get($spreadsheetId, $range);
-                $values = $response->getValues();
-            } catch (Exception $rangeError) {
-                $range = "'Form responses 1'!A:Z";
-                $response = $service->spreadsheets_values->get($spreadsheetId, $range);
-                $values = $response->getValues();
+    $result = $conn->query($sql);
+    if (!$result) {
+        error_log('Database query failed: ' . $conn->error);
+        $alumniData = [];
+    } else {
+        while ($row = $result->fetch_assoc()) {
+            $locationParts = explode(',', $row['location'] ?? '');
+            $city = isset($locationParts[0]) ? trim($locationParts[0]) : '';
+            $state = '';
+            if (isset($locationParts[1])) {
+                $state = trim($locationParts[1]);
+            } elseif (isset($locationParts[2])) {
+                $state = trim($locationParts[2]);
             }
             
-            if (!empty($values) && count($values) > 1) {
-                $headers = array_map('trim', $values[0]);
+            // Enhanced state detection (same as index.php)
+            if (empty($state) && !empty($row['location'])) {
+                $cityToState = [
+                    'delhi' => 'Delhi', 'new delhi' => 'Delhi',
+                    'mumbai' => 'Maharashtra', 'pune' => 'Maharashtra', 'nagpur' => 'Maharashtra',
+                    'bangalore' => 'Karnataka', 'bengaluru' => 'Karnataka', 'mysore' => 'Karnataka',
+                    'hyderabad' => 'Telangana', 'warangal' => 'Telangana',
+                    'chennai' => 'Tamil Nadu', 'coimbatore' => 'Tamil Nadu', 'madurai' => 'Tamil Nadu',
+                    'kolkata' => 'West Bengal', 'howrah' => 'West Bengal',
+                    'gurgaon' => 'Haryana', 'gurugram' => 'Haryana', 'faridabad' => 'Haryana', 'panchkula' => 'Haryana',
+                    'noida' => 'Uttar Pradesh', 'lucknow' => 'Uttar Pradesh', 'kanpur' => 'Uttar Pradesh', 'meerut' => 'Uttar Pradesh'
+                ];
                 
-                // Find column indices using helper functions
-                $statusColIndex = getColumnIndex($headers, ['Status', 'status']);
+                $indianStates = ['Haryana', 'Karnataka', 'Maharashtra', 'Tamil Nadu', 'West Bengal', 'Uttar Pradesh', 'Telangana', 'Rajasthan', 'Gujarat', 'Punjab', 'Madhya Pradesh', 'Bihar', 'Odisha', 'Andhra Pradesh', 'Kerala', 'Assam', 'Jharkhand', 'Chhattisgarh', 'Himachal Pradesh', 'Uttarakhand', 'Goa', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Sikkim', 'Tripura', 'Arunachal Pradesh', 'Delhi'];
                 
-                // Process rows - only approved entries
-                for ($i = 1; $i < count($values); $i++) {
-                    $row = $values[$i];
-                    
-                    // Skip empty rows
-                    if (empty(array_filter($row, function($cell) {
-                        return trim((string)$cell) !== '';
-                    }))) {
-                        continue;
+                $locationLower = strtolower($row['location']);
+                
+                foreach ($cityToState as $cityName => $stateName) {
+                    if (stripos($locationLower, $cityName) !== false) {
+                        $state = $stateName;
+                        break;
                     }
-                    
-                    // Ensure row has same length as headers
-                    while (count($row) < count($headers)) {
-                        $row[] = '';
-                    }
-                    
-                    // Check if approved
-                    $isApproved = false;
-                    if ($statusColIndex !== false && isset($row[$statusColIndex])) {
-                        $statusRaw = trim(strtolower((string)$row[$statusColIndex]));
-                        if (preg_match('/^approved|^approve/i', $statusRaw)) {
-                            $isApproved = true;
+                }
+                
+                if (empty($state)) {
+                    foreach ($indianStates as $stateName) {
+                        if (stripos($locationLower, strtolower($stateName)) !== false) {
+                            $state = $stateName;
+                            break;
                         }
                     }
-                    
-                    if (!$isApproved) {
-                        continue; // Skip non-approved entries
-                    }
-                    
-                    // Extract all data using helper functions
-                    $name = mapValue($headers, $row, ['Full Name', 'full name', 'name']);
-                    $email = mapValue($headers, $row, ['Email Address', 'email address', 'email']);
-                    $enroll = mapValue($headers, $row, ['University Enrollment no.', 'enrollment', 'enroll']);
-                    $course = mapValue($headers, $row, ['Course of Study at SPM college', 'course']);
-                    $dept = mapValue($headers, $row, ['Name of Department', 'department']);
-                    $yearAdmission = mapValue($headers, $row, ['Year of admission in SPM college', 'year of admission', 'year admission']);
-                    $yearPassing = mapValue($headers, $row, ['Year of passing from SPM college', 'year of passing', 'year passing']);
-                    $phone = mapValue($headers, $row, ['Contact Number', 'contact', 'phone']);
-                    $linkedin = mapValue($headers, $row, ['LinkedIn Profile', 'linkedin']);
-                    
-                    // Higher Education fields
-                    $hasHigherEdu = mapValue($headers, $row, ['Have you completed or are you currently pursuing any higher education?', 'higher education']);
-                    $degree = mapValue($headers, $row, ['Name of degree (Pursuing/Completed)', 'degree', 'name of degree']);
-                    $institution = mapValue($headers, $row, ['Institution Name', 'institution']);
-                    $university = mapValue($headers, $row, ['University Name', 'university']);
-                    
-                    // Filter out Google Drive links from degree
-                    if (!empty($degree)) {
-                        if (filter_var($degree, FILTER_VALIDATE_URL) !== false ||
-                            stripos($degree, 'drive.google.com') !== false ||
-                            stripos($degree, 'http://') !== false ||
-                            stripos($degree, 'https://') !== false) {
-                            $degree = '';
-                        }
-                    }
-                    
-                    // Employment fields
-                    $hasWorkExp = mapValue($headers, $row, ['Are you currently working or have work experience?', 'work experience', 'currently working']);
-                    $employmentStatus = mapValue($headers, $row, ['Current Employment Status:', 'employment status', 'current employment status']);
-                    $company = mapValue($headers, $row, [
-                        'Currently working with Organisation/Company',
-                        'currently working with organisation/company',
-                        'currently working with organisation',
-                        'currently working with company',
-                        'organisation',
-                        'company'
-                    ]);
-                    $role = mapValue($headers, $row, [
-                        'Current Job Title/ Designation',
-                        'current job title designation',
-                        'Current Job Title',
-                        'current job title',
-                        'designation'
-                    ]);
-                    $jobLocation = mapValue($headers, $row, ['Location of Current Job', 'location of current job', 'location']);
-                    $placedThroughSPM = mapValue($headers, $row, ['Were you placed through SPM?', 'placed through spm', 'placed']);
-                    
-                    // Determine status
-            $hasEmployment = false;
-                    $hasHigherEducation = false;
-                    
-                    // Check employment
-                    $workExpLower = strtolower(trim($hasWorkExp));
-                    if (in_array($workExpLower, ['yes', 'y', '1']) || 
-                        !empty($company) || !empty($role) || !empty($jobLocation)) {
-                $hasEmployment = true;
+                }
             }
 
-                    // Check higher education
-                    $eduLower = strtolower(trim($hasHigherEdu));
-                    if (in_array($eduLower, ['yes', 'y', '1']) || 
-                        !empty($degree) || !empty($institution) || !empty($university)) {
-                $hasHigherEducation = true;
-            }
+            $companyName = formatCompanyName($row['company'] ?? '');
+            $roleName = trim($row['role'] ?? '');
+            $programName = formatProgramName($row['program'] ?: 'BSc CS Hons');
 
-                    // Determine current status and location
+            $hasEmployment = !is_null($row['employment_status']) ||
+                !is_null($row['company']) ||
+                !is_null($row['role']) ||
+                !is_null($row['experience_years']);
+
+            $hasHigherEducation = ($row['has_higher_edu'] == 1) ||
+                !empty($row['degree_name']) ||
+                !empty($row['institution_name']) ||
+                !empty($row['university_name']);
+
             $currentStatus = '';
             $statusDetails = '';
-                    $displayLocation = '';
-                    $locationData = ['city' => '', 'state' => ''];
+            $displayLocation = '';
 
             if ($hasEmployment) {
-                $currentStatus = 'Working';
-                        $displayLocation = $jobLocation;
-                        
+                $currentStatus = ($row['placed_through_spm'] == 1) ? 'Placed' : 'Working';
+                $displayLocation = $row['location'] ?? '';
+                
                 $details = [];
-                        if (!empty($role)) {
-                            $details[] = $role;
+                if ($roleName !== '') {
+                    $details[] = $roleName;
                 }
-                        if (!empty($company)) {
-                            $details[] = formatCompanyName($company);
+                if ($companyName !== '') {
+                    $details[] = $companyName;
                 }
-                        if (!empty($jobLocation)) {
-                            $details[] = 'Location: ' . $jobLocation;
+                if ($row['location']) {
+                    $details[] = 'Location: ' . $row['location'];
                 }
                 $statusDetails = implode(' • ', array_filter($details));
-                        
-                        // Check if placed through SPM
-                        $placedLower = strtolower(trim($placedThroughSPM));
-                        if (in_array($placedLower, ['yes', 'y', '1'])) {
-                            $currentStatus = 'Placed';
-                        }
             } elseif ($hasHigherEducation) {
                 $currentStatus = 'Studying';
-                        // For studying, use university or institution name as location
-                        $displayLocation = trim($university) ?: trim($institution);
-                        
-                        $details = [];
-                        if (!empty($degree)) {
-                            $details[] = "Pursuing {$degree}";
-                        }
-                        if (!empty($institution)) {
-                            $details[] = $institution;
-                        }
-                        if (!empty($university)) {
-                            $details[] = $university;
-                        }
-                        $statusDetails = implode(' • ', array_filter($details));
-                    }
-                    
-                    // Extract location components for working/placed alumni
-                    if (!empty($displayLocation) && ($hasEmployment || $currentStatus === 'Placed')) {
-                        $locationData = extractLocationComponents($displayLocation);
-                    } else {
-                        // For studying, also try to extract location from university/institution name
-                        if ($currentStatus === 'Studying' && !empty($displayLocation)) {
-                            $locationData = extractLocationComponents($displayLocation);
-                        }
-                    }
-                    
-                    // Only add if we have at least a name
-                    if (!empty($name)) {
+                $degree = $row['degree_name'] ?: '';
+                $institution = $row['institution_name'] ?: $row['university_name'] ?: '';
+                $displayLocation = $institution;
+                $statusDetails = trim(($degree ? "Pursuing {$degree}" : '') . ($institution ? ($degree ? ' at ' : 'At ') . $institution : ''));
+            }
+
+            $locationData = extractLocationComponents($displayLocation);
+
             $alumniData[] = [
-                            'id' => $i, // Use row index as ID
-                            'name' => trim($name),
-                            'email' => trim($email),
-                            'year' => !empty($yearPassing) && is_numeric($yearPassing) ? (int)$yearPassing : null,
-                            'admissionYear' => !empty($yearAdmission) && is_numeric($yearAdmission) ? (int)$yearAdmission : null,
-                            'program' => formatProgramName($course ?: 'BSc CS Hons'),
-                            'department' => formatStringLabel($dept),
-                            'role' => trim($role) ?: '',
-                            'company' => formatCompanyName($company),
-                            'location' => $displayLocation ?: '', // Job location for working, university/institution for studying
-                            'city' => $locationData['city'],
-                            'state' => $locationData['state'],
+                'id' => (int)$row['id'],
+                'name' => trim($row['name']),
+                'email' => '',
+                'year' => (int)$row['year'],
+                'admissionYear' => (int)$row['admission_year'],
+                'program' => $programName,
+                'department' => $row['department'] ?? '',
+                'role' => $roleName ?: '',
+                'company' => $companyName,
+                'location' => $displayLocation,
+                'city' => $locationData['city'] ?: $city,
+                'state' => $locationData['state'] ?: $state,
                 'country' => 'India',
-                            'linkedin' => trim($linkedin),
+                'linkedin' => $row['linkedin'],
                 'currentStatus' => $currentStatus,
                 'statusDetails' => $statusDetails,
                 'hasEmployment' => $hasEmployment,
                 'hasHigherEducation' => $hasHigherEducation,
-                            'education' => [
-                                'degree' => trim($degree),
-                                'institution' => trim($institution) ?: '', // Make sure this is accessible
-                                'university' => trim($university) ?: '', // Make sure this is accessible
-                                'hasHigherEdu' => $hasHigherEducation
-                            ],
-                            'institutionName' => trim($institution) ?: '',
-                            'universityName' => trim($university) ?: ''
-                        ];
-                    }
-                }
+                'education' => [
+                    'degree' => $row['degree_name'] ?: '',
+                    'institution' => $row['institution_name'] ?: '',
+                    'university' => $row['university_name'] ?: '',
+                    'hasHigherEdu' => (bool)$row['has_higher_edu']
+                ],
+                'institutionName' => $row['institution_name'] ?: '',
+                'universityName' => $row['university_name'] ?: ''
+            ];
         }
     }
 } catch (Exception $e) {
-        error_log('Error fetching alumni data from Google Sheets: ' . $e->getMessage());
+    error_log('Error fetching alumni data from database: ' . $e->getMessage());
     $alumniData = [];
-    }
 }
 
 // Calculate stats

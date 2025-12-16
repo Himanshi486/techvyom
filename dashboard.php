@@ -96,15 +96,9 @@ if (file_exists($vendorAutoload)) {
                     return false;
                 }
                 
-                // Find status column index - flexible matching (case-insensitive)
-                $statusColIndex = false;
-                foreach ($sheetsHeaders as $idx => $header) {
-                    $headerNorm = strtolower(trim(preg_replace('/\s+/', ' ', $header)));
-                    if ($headerNorm === 'status' || strpos($headerNorm, 'status') !== false) {
-                        $statusColIndex = $idx;
-                        break;
-                    }
-                }
+                // Find Admin Status column index - use specific column name
+                require_once __DIR__ . '/admin/sheets_helper.php';
+                $statusColIndex = getColumnIndex($sheetsHeaders, ['Admin Status', 'Admin status']);
                 
                 $sheetsTotalRows = count($values) - 1;
                 
@@ -212,7 +206,7 @@ if (file_exists($vendorAutoload)) {
                                 $emailColIndex = $idx;
                             }
                             $headerNorm = strtolower(trim(preg_replace('/\s+/', ' ', $header)));
-                            if ($headerNorm === 'status' || strpos($headerNorm, 'status') !== false) {
+                            if ($headerNorm === 'admin status' || $headerNorm === 'adminstatus') {
                                 $statusColIndexForSync = $idx;
                             }
                         }

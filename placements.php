@@ -41,36 +41,36 @@ if (file_exists($vendorAutoload)) {
             if (!empty($values) && count($values) > 1) {
                 $headers = array_map('trim', $values[0]);
                 
-                // Find column indices using helper functions for precise matching
-                $statusColIndex = getColumnIndex($headers, ['Status', 'status']);
+                // Find Admin Status column index
+                $statusColIndex = getColumnIndex($headers, ['Admin Status', 'Admin status']);
+                
+                // Find column indices using helper functions
                 $workExpColIndex = getColumnIndex($headers, [
                     'Are you currently working or have work experience?',
                     'are you currently working or have work experience',
                     'currently working or have work experience',
                     'work experience'
                 ]);
-                $nameColIndex = getColumnIndex($headers, ['Full Name', 'full name', 'name']);
-                $emailColIndex = getColumnIndex($headers, ['Email Address', 'email address', 'email']);
                 
-                // Company: "Currently working with Organisation/Company" - prioritize exact match
+                // Company: "Currently working with Organisation/Company"
                 $companyColIndex = false;
                 foreach ($headers as $idx => $header) {
                     $headerNormalized = strtolower(trim($header));
                     if (stripos($headerNormalized, 'currently working with organisation') !== false ||
                         stripos($headerNormalized, 'currently working with company') !== false) {
                         $companyColIndex = $idx;
-                        break; // Take first match, prioritizing "Currently working with Organisation/Company"
+                        break;
                     }
                 }
                 
-                // Role: "Current Job Title/ Designation" - prioritize exact match
+                // Role: "Current Job Title/ Designation"
                 $roleColIndex = false;
                 foreach ($headers as $idx => $header) {
                     $headerNormalized = strtolower(trim($header));
                     if (stripos($headerNormalized, 'current job title') !== false ||
-                        stripos($headerNormalized, 'job title') !== false && stripos($headerNormalized, 'designation') !== false) {
+                        (stripos($headerNormalized, 'job title') !== false && stripos($headerNormalized, 'designation') !== false)) {
                         $roleColIndex = $idx;
-                        break; // Take first match, prioritizing "Current Job Title/ Designation"
+                        break;
                     }
                 }
                 
@@ -82,6 +82,8 @@ if (file_exists($vendorAutoload)) {
                 $linkedinColIndex = getColumnIndex($headers, ['LinkedIn Profile', 'linkedin profile', 'linkedin']);
                 
                 // Year columns
+                $yearAdmissionColIndex = false;
+                $yearPassingColIndex = false;
                 foreach ($headers as $idx => $header) {
                     $headerLower = strtolower(trim($header));
                     if (stripos($headerLower, 'year of admission') !== false && stripos($headerLower, 'spm') !== false) {
@@ -108,7 +110,7 @@ if (file_exists($vendorAutoload)) {
                         $row[] = '';
                     }
                     
-                    // Check if approved
+                    // Check if approved - STRICT FILTER: Only Admin Status = "approved"
                     $isApproved = false;
                     if ($statusColIndex !== false && isset($row[$statusColIndex])) {
                         $statusRaw = trim(strtolower((string)$row[$statusColIndex]));
@@ -142,43 +144,32 @@ if (file_exists($vendorAutoload)) {
                         continue; // Skip entries without work experience
                     }
                     
-                    // Extract data using helper functions for reliable mapping
+                    // Extract data using helper functions
                     $name = mapValue($headers, $row, ['Full Name', 'full name', 'name']);
                     $email = mapValue($headers, $row, ['Email Address', 'email address', 'email']);
-                    
-                    // Company: Must match "Currently working with Organisation/Company" exactly
                     $company = mapValue($headers, $row, [
                         'Currently working with Organisation/Company',
                         'currently working with organisation/company',
-                        'currently working with organisation company',
-                        'Currently working with Organisation',
                         'currently working with organisation',
-                        'Currently working with Company',
                         'currently working with company'
                     ]);
-                    
-                    // Role: Must match "Current Job Title/ Designation" exactly
                     $role = mapValue($headers, $row, [
                         'Current Job Title/ Designation',
                         'current job title/ designation',
-                        'current job title designation',
-                        'Current Job Title',
                         'current job title',
-                        'Job Title/ Designation',
                         'job title designation',
                         'Designation'
                     ]);
-                    
                     $location = mapValue($headers, $row, ['Location of Current Job', 'location of current job', 'location']);
                     $linkedin = mapValue($headers, $row, ['LinkedIn Profile', 'linkedin profile', 'linkedin']);
                     
-                    // Year columns (fallback to direct access if helper didn't find)
+                    // Year columns
                     $yearAdmission = ($yearAdmissionColIndex !== false && isset($row[$yearAdmissionColIndex])) ? trim($row[$yearAdmissionColIndex]) : '';
                     $yearPassing = ($yearPassingColIndex !== false && isset($row[$yearPassingColIndex])) ? trim($row[$yearPassingColIndex]) : '';
                     
                     // Only add if we have at least a name
                     if (!empty($name)) {
-            $placedAlumni[] = [
+                        $placedAlumni[] = [
                             'name' => $name,
                             'company' => formatCompanyName($company),
                             'role' => $role,
@@ -199,11 +190,11 @@ if (file_exists($vendorAutoload)) {
                     }
                     return strcmp($a['name'], $b['name']);
                 });
+            }
         }
-    }
-} catch (Exception $e) {
+    } catch (Exception $e) {
         error_log('Error fetching placements data from Google Sheets: ' . $e->getMessage());
-    $placedAlumni = [];
+        $placedAlumni = [];
     }
 }
 ?>

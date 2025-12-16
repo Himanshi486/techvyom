@@ -41,8 +41,10 @@ if (file_exists($vendorAutoload)) {
             if (!empty($values) && count($values) > 1) {
                 $headers = array_map('trim', $values[0]);
                 
+                // Find Admin Status column index
+                $statusColIndex = getColumnIndex($headers, ['Admin Status', 'Admin status']);
+                
                 // Find column indices
-                $statusColIndex = false;
                 $higherEduColIndex = false;
                 $nameColIndex = false;
                 $emailColIndex = false;
@@ -58,9 +60,6 @@ if (file_exists($vendorAutoload)) {
                     $headerLower = strtolower(trim($header));
                     $headerTrimmed = trim($header);
                     
-                    if ($headerLower === 'status' || strpos($headerLower, 'status') !== false) {
-                        $statusColIndex = $idx;
-                    }
                     if (stripos($headerLower, 'have you completed or are you currently pursuing any higher education') !== false ||
                         stripos($headerLower, 'higher education') !== false ||
                         stripos($headerLower, 'pursuing any higher education') !== false) {
@@ -124,7 +123,7 @@ if (file_exists($vendorAutoload)) {
                         $row[] = '';
                     }
                     
-                    // Check if approved
+                    // Check if approved - STRICT FILTER: Only Admin Status = "approved"
                     $isApproved = false;
                     if ($statusColIndex !== false && isset($row[$statusColIndex])) {
                         $statusRaw = trim(strtolower((string)$row[$statusColIndex]));
@@ -168,7 +167,6 @@ if (file_exists($vendorAutoload)) {
                     
                     // Filter out Google Drive links or URLs from degree - should only be text
                     if (!empty($degree)) {
-                        // Check if it's a URL/link
                         if (filter_var($degree, FILTER_VALIDATE_URL) !== false ||
                             stripos($degree, 'drive.google.com') !== false ||
                             stripos($degree, 'http://') !== false ||

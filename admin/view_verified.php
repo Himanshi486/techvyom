@@ -39,20 +39,20 @@ if ($fromDatabase) {
     } else {
         $alumni = $result->fetch_assoc();
         
-        // Fetch employment data if exists
-        $stmt2 = $conn->prepare("SELECT * FROM alumni_employment WHERE alumni_id = ? AND verified = 1");
+        // Fetch employment data if exists (related tables don't have verified column)
+        $stmt2 = $conn->prepare("SELECT * FROM alumni_employment WHERE alumni_id = ?");
         $stmt2->bind_param("i", $alumniId);
         $stmt2->execute();
         $employment = $stmt2->get_result()->fetch_assoc();
         
-        // Fetch education data if exists
-        $stmt3 = $conn->prepare("SELECT * FROM alumni_education WHERE alumni_id = ? AND verified = 1");
+        // Fetch education data if exists (related tables don't have verified column)
+        $stmt3 = $conn->prepare("SELECT * FROM alumni_education WHERE alumni_id = ?");
         $stmt3->bind_param("i", $alumniId);
         $stmt3->execute();
         $education = $stmt3->get_result()->fetch_assoc();
         
-        // Fetch extras data if exists
-        $stmt4 = $conn->prepare("SELECT * FROM alumni_extras WHERE alumni_id = ? AND verified = 1");
+        // Fetch extras data if exists (related tables don't have verified column)
+        $stmt4 = $conn->prepare("SELECT * FROM alumni_extras WHERE alumni_id = ?");
         $stmt4->bind_param("i", $alumniId);
         $stmt4->execute();
         $extras = $stmt4->get_result()->fetch_assoc();
