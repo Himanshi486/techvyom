@@ -1,4 +1,7 @@
 <?php
+require __DIR__ . '/vendor/autoload.php';
+echo class_exists('Google\Client') ? 'Google API OK' : 'Missing Google API';
+exit;
 session_start();
 include __DIR__ . '/connect.php';
 if (!function_exists('formatStringLabel')) {
