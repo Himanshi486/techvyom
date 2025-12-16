@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/connect.php';
 
-$result = $conn->query("SELECT * FROM admin");
+$result = $conn->query("SELECT * FROM admin_users");
 
 if (!$result) {
     die("Query failed: " . $conn->error);
