@@ -1,12 +1,6 @@
 <?php
-echo "DB_HOST = " . getenv("DB_HOST");
-exit;
 session_start();
-
 include __DIR__ . '/connect.php';
-
-
-
 if (!function_exists('formatStringLabel')) {
     function formatStringLabel($value) {
         $value = trim((string)$value);
