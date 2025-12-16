@@ -1,5 +1,4 @@
 # Exclude sensitive files from Docker build
-connect.php
 credentials/alumni-service.json
 vendor/
 
@@ -15,4 +14,5 @@ node_modules/
 tmp/
 temp/
 cache/
+
 
