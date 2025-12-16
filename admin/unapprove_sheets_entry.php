@@ -46,7 +46,7 @@ try {
     $headers = array_map('trim', $headerResponse->getValues()[0]);
     
     // Find status column index using helper function
-    $statusColIndex = getColumnIndex($headers, ['Status', 'status']);
+    $statusColIndex = getColumnIndex($headers, ['Admin Status', 'Admin status']);
     
     // If no status column, create one (add it as last column)
     if ($statusColIndex === false) {
@@ -55,7 +55,7 @@ try {
         
         // Add header
         $headerRange = "'$sheetName'!" . $columnLetter . "1";
-        $updateValues = [['Status']];
+        $updateValues = [['Admin Status']];
         $body = new Google_Service_Sheets_ValueRange(['values' => $updateValues]);
         $params = ['valueInputOption' => 'RAW'];
         $service->spreadsheets_values->update($spreadsheetId, $headerRange, $body, $params);
