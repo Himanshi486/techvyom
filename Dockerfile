@@ -1,20 +1,19 @@
-# Use official PHP with Apache
 FROM php:8.2-apache
 
-# Install required PHP extensions
+# Install PHP extensions
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
 # Enable Apache rewrite
 RUN a2enmod rewrite
 
-# Set working directory
-WORKDIR /var/www/html
+# Change Apache to listen on Railway $PORT
+RUN sed -i 's/80/${PORT}/g' /etc/apache2/ports.conf \
+ && sed -i 's/:80/:${PORT}/g' /etc/apache2/sites-enabled/000-default.conf
 
-# Copy all your project files into the container
+WORKDIR /var/www/html
 COPY . /var/www/html
 
-# Expose port (Railway uses PORT)
-EXPOSE 80
+# Railway sets PORT automatically
+EXPOSE ${PORT}
 
-# Start Apache
 CMD ["apache2-foreground"]
